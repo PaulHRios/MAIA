@@ -84,7 +84,15 @@
   </main>
 
   <form id="composer" class="composer">
-    <textarea id="input" rows="1" placeholder="Escribe a Maia..." autocomplete="off"></textarea>
+    <label for="imageInput" class="icon-attach" id="attachBtn" aria-label="Adjuntar imagen">📷</label>
+    <input id="imageInput" type="file" accept="image/*" hidden />
+    <div class="composer-main">
+      <div id="attachPreview" class="attach-preview hidden">
+        <img id="attachThumb" alt="adjunto" />
+        <button type="button" id="attachRemove" aria-label="Quitar imagen">×</button>
+      </div>
+      <textarea id="input" rows="1" placeholder="Escribe a Maia..." autocomplete="off"></textarea>
+    </div>
     <button id="sendBtn" type="submit" aria-label="Enviar" disabled>↑</button>
     <button id="stopBtn" type="button" class="hidden" aria-label="Detener">■</button>
   </form>

@@ -61,7 +61,16 @@ const MODELS = [
     sizeMb: 5000,
     note: "Solo escritorio o iPad Pro / iPhone 16 Pro Max. Probablemente no cargue en iPhones más antiguos.",
   },
+  {
+    id: "Phi-3.5-vision-instruct-q4f16_1-MLC",
+    label: "👁 Phi 3.5 Vision (imágenes, ~5.6 GB)",
+    sizeMb: 5600,
+    vision: true,
+    note: "Único modelo que entiende imágenes (plantas, hongos, texto). Pesado: probablemente solo cargue en iPad Pro o escritorio. iPhone Safari suele quedarse sin memoria con este tamaño.",
+  },
 ];
+
+const VISION_MODELS = new Set(MODELS.filter((m) => m.vision).map((m) => m.id));
 
 const DEFAULT_SYSTEM = `Eres Maia, una asistente de IA que vive dentro del dispositivo del usuario y funciona sin internet.
 Sé clara, directa y útil. Responde en el idioma del usuario.
@@ -120,7 +129,15 @@ const els = {
   stopBtn: $("stopBtn"),
   unsupported: $("unsupported"),
   continueAnywayBtn: $("continueAnywayBtn"),
+  imageInput: $("imageInput"),
+  attachBtn: $("attachBtn"),
+  attachPreview: $("attachPreview"),
+  attachThumb: $("attachThumb"),
+  attachRemove: $("attachRemove"),
 };
+
+// Imagen pendiente de envío (data URL JPEG redimensionada).
+let pendingImage = null;
 
 // ---------------- Init ----------------
 function init() {
@@ -190,16 +207,46 @@ function loadHistory() {
     state.history = raw ? JSON.parse(raw) : [];
     if (state.history.length) {
       els.welcome.classList.add("hidden");
-      for (const m of state.history) renderMessage(m.role, m.content, false);
+      for (const m of state.history) {
+        const text = typeof m.content === "string" ? m.content : extractText(m.content);
+        const img = m.image || extractImage(m.content);
+        renderMessage(m.role, text, false, img);
+      }
     }
   } catch {
     state.history = [];
   }
 }
 
+function extractText(content) {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content.filter((p) => p.type === "text").map((p) => p.text).join("\n");
+  }
+  return "";
+}
+function extractImage(content) {
+  if (Array.isArray(content)) {
+    const p = content.find((p) => p.type === "image_url");
+    return p?.image_url?.url || null;
+  }
+  return null;
+}
+
 function saveHistory() {
+  // Para no reventar localStorage, no persistimos data URLs de imágenes,
+  // solo dejamos un marcador. La conversación se mantiene en memoria
+  // dentro de la sesión actual.
   try {
-    localStorage.setItem(STORAGE.history, JSON.stringify(state.history));
+    const slim = state.history.map((m) => {
+      if (typeof m.content === "string") return { role: m.role, content: m.content };
+      const text = extractText(m.content);
+      const hasImg = !!extractImage(m.content);
+      return hasImg
+        ? { role: m.role, content: text, hadImage: true }
+        : { role: m.role, content: text };
+    });
+    localStorage.setItem(STORAGE.history, JSON.stringify(slim));
   } catch {}
 }
 
@@ -240,6 +287,77 @@ function bindUI() {
   els.continueAnywayBtn.addEventListener("click", () => {
     els.unsupported.classList.add("hidden");
   });
+
+  els.imageInput.addEventListener("change", onImagePicked);
+  els.attachRemove.addEventListener("click", clearPendingImage);
+}
+
+async function onImagePicked(e) {
+  const file = e.target.files?.[0];
+  e.target.value = "";
+  if (!file) return;
+
+  if (!VISION_MODELS.has(els.modelSelect.value) && state.modelId && !VISION_MODELS.has(state.modelId)) {
+    const proceed = confirm(
+      "El modelo actual no entiende imágenes. Para analizar fotos cambia a 'Phi 3.5 Vision' en el menú y descárgalo. ¿Quieres continuar y elegir el modelo de visión ahora?"
+    );
+    if (proceed) {
+      els.modelSelect.value = "Phi-3.5-vision-instruct-q4f16_1-MLC";
+      localStorage.setItem(STORAGE.model, els.modelSelect.value);
+      updateModelSize();
+      toggleSidebar(true);
+    }
+    return;
+  }
+
+  try {
+    const dataUrl = await fileToResizedDataURL(file, 672);
+    pendingImage = dataUrl;
+    els.attachThumb.src = dataUrl;
+    els.attachPreview.classList.remove("hidden");
+    els.sendBtn.disabled = false;
+    if (!els.input.value.trim()) {
+      els.input.placeholder = "Pregunta sobre la imagen (ej: ¿qué es esto? ¿es comestible?)";
+    }
+  } catch (err) {
+    alert("No pude leer la imagen: " + (err.message || err));
+  }
+}
+
+function clearPendingImage() {
+  pendingImage = null;
+  els.attachPreview.classList.add("hidden");
+  els.attachThumb.src = "";
+  els.input.placeholder = "Escribe a Maia...";
+  els.sendBtn.disabled = !els.input.value.trim();
+}
+
+function fileToResizedDataURL(file, maxDim) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const { naturalWidth: w0, naturalHeight: h0 } = img;
+      const scale = Math.min(1, maxDim / Math.max(w0, h0));
+      const w = Math.max(1, Math.round(w0 * scale));
+      const h = Math.max(1, Math.round(h0 * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      try {
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(new Error("formato de imagen no soportado (¿HEIC sin convertir?)"));
+    };
+    img.src = url;
+  });
 }
 
 function isMobile() {
@@ -255,7 +373,7 @@ function toggleSidebar(open) {
 function autoresize() {
   els.input.style.height = "auto";
   els.input.style.height = Math.min(els.input.scrollHeight, window.innerHeight * 0.3) + "px";
-  els.sendBtn.disabled = !els.input.value.trim() || state.generating;
+  els.sendBtn.disabled = (!els.input.value.trim() && !pendingImage) || state.generating;
 }
 
 async function checkWebGPU() {
@@ -325,12 +443,24 @@ function setLoadProgress(pct, text) {
 }
 
 // ---------------- Chat ----------------
-function renderMessage(role, content, isStreaming) {
+function renderMessage(role, content, isStreaming, imageUrl) {
   els.welcome.classList.add("hidden");
   const div = document.createElement("div");
   div.className = "msg " + role + (isStreaming ? " streaming" : "");
   div.dataset.role = role;
-  div.textContent = content;
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.className = "msg-image";
+    img.src = imageUrl;
+    img.alt = "imagen adjunta";
+    div.appendChild(img);
+  }
+  if (content) {
+    const txt = document.createElement("span");
+    txt.className = "msg-text";
+    txt.textContent = content;
+    div.appendChild(txt);
+  }
   els.messages.appendChild(div);
   scrollToBottom();
   return div;
@@ -351,7 +481,8 @@ function clearChat() {
 
 async function sendMessage() {
   const text = els.input.value.trim();
-  if (!text || state.generating) return;
+  const image = pendingImage;
+  if ((!text && !image) || state.generating) return;
 
   if (!state.engine) {
     alert("Primero descarga un modelo desde el menú.");
@@ -359,10 +490,26 @@ async function sendMessage() {
     return;
   }
 
-  state.history.push({ role: "user", content: text });
+  if (image && !VISION_MODELS.has(state.modelId)) {
+    alert("El modelo cargado no procesa imágenes. Carga 'Phi 3.5 Vision' desde el menú.");
+    return;
+  }
+
+  const userContent = image
+    ? [
+        {
+          type: "text",
+          text: text || "Describe esta imagen con detalle. Si es una planta, hongo o animal, propón identificación (nombre común y científico) con tu nivel de confianza, y lista propiedades conocidas, usos tradicionales y advertencias de seguridad. Si no estás seguro, dilo claramente y NUNCA recomiendes consumir algo silvestre solo en base a una foto: pide confirmación a un experto.",
+        },
+        { type: "image_url", image_url: { url: image } },
+      ]
+    : text;
+
+  state.history.push({ role: "user", content: userContent });
   saveHistory();
-  renderMessage("user", text, false);
+  renderMessage("user", text, false, image);
   els.input.value = "";
+  clearPendingImage();
   autoresize();
 
   const assistantDiv = renderMessage("assistant", "", true);
@@ -380,6 +527,22 @@ async function sendMessage() {
     { role: "system", content: els.systemPrompt.value || DEFAULT_SYSTEM },
     ...state.history.map((m) => ({ role: m.role, content: m.content })),
   ];
+
+  // Tras cada turno con visión, para no inflar el contexto, descartamos
+  // imágenes de turnos previos al construir el prompt — solo dejamos
+  // la imagen del último turno del usuario.
+  let lastUserWithImage = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user" && Array.isArray(messages[i].content) && extractImage(messages[i].content)) {
+      lastUserWithImage = i;
+      break;
+    }
+  }
+  for (let i = 0; i < messages.length; i++) {
+    if (i !== lastUserWithImage && Array.isArray(messages[i].content)) {
+      messages[i] = { role: messages[i].role, content: extractText(messages[i].content) || "(imagen)" };
+    }
+  }
 
   try {
     const stream = await state.engine.chat.completions.create({
