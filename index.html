@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0b0b10" />
+  <meta name="description" content="Maia: chat de IA 100% offline que corre en tu iPhone." />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Maia" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <title>Maia · Chat IA Offline</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button id="menuBtn" class="icon-btn" aria-label="Menú">☰</button>
+    <div class="title">
+      <span class="brand">Maia</span>
+      <span id="modelLabel" class="model-label">sin modelo</span>
+    </div>
+    <button id="newChatBtn" class="icon-btn" aria-label="Nuevo chat">＋</button>
+  </header>
+
+  <aside id="sidebar" class="sidebar" aria-hidden="true">
+    <div class="sidebar-section">
+      <h3>Modelo</h3>
+      <select id="modelSelect"></select>
+      <div class="hint" id="modelSize"></div>
+      <button id="loadModelBtn" class="primary">Descargar / cargar modelo</button>
+      <div id="loadProgress" class="progress hidden">
+        <div class="bar"><div id="loadBar"></div></div>
+        <div id="loadText" class="progress-text"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Personalidad (system prompt)</h3>
+      <textarea id="systemPrompt" rows="5" placeholder="Eres Maia, una asistente útil y directa..."></textarea>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Parámetros</h3>
+      <label>Temperatura: <span id="tempVal">0.7</span></label>
+      <input type="range" id="temperature" min="0" max="2" step="0.05" value="0.7" />
+      <label>Top-p: <span id="topPVal">0.95</span></label>
+      <input type="range" id="topP" min="0.1" max="1" step="0.01" value="0.95" />
+      <label>Máx. tokens respuesta: <span id="maxTokVal">1024</span></label>
+      <input type="range" id="maxTokens" min="128" max="4096" step="64" value="1024" />
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Datos</h3>
+      <button id="clearChatBtn">Borrar conversación</button>
+      <button id="clearCacheBtn" class="danger">Borrar modelos descargados</button>
+      <div class="hint" id="storageInfo"></div>
+    </div>
+
+    <div class="sidebar-section about">
+      <h3>Sobre Maia</h3>
+      <p>Chat de IA que corre 100% en tu dispositivo usando WebGPU. Tras la primera descarga del modelo, funciona sin internet.</p>
+      <p class="hint">Requiere Safari iOS 18+ con WebGPU activado, o Chrome/Edge en escritorio.</p>
+    </div>
+  </aside>
+  <div id="sidebarBackdrop" class="backdrop hidden"></div>
+
+  <main id="chat" class="chat">
+    <div id="welcome" class="welcome">
+      <div class="logo">M</div>
+      <h1>Hola, soy Maia</h1>
+      <p>Una IA que vive dentro de tu iPhone. Abre el menú, descarga un modelo, y empieza a chatear — incluso sin internet.</p>
+      <div class="suggestions">
+        <button class="chip">Explícame algo difícil</button>
+        <button class="chip">Ayúdame a escribir</button>
+        <button class="chip">Dame ideas creativas</button>
+        <button class="chip">Resuelve este problema</button>
+      </div>
+    </div>
+    <div id="messages" class="messages"></div>
+  </main>
+
+  <form id="composer" class="composer">
+    <textarea id="input" rows="1" placeholder="Escribe a Maia..." autocomplete="off"></textarea>
+    <button id="sendBtn" type="submit" aria-label="Enviar" disabled>↑</button>
+    <button id="stopBtn" type="button" class="hidden" aria-label="Detener">■</button>
+  </form>
+
+  <div id="unsupported" class="unsupported hidden">
+    <div class="card">
+      <h2>WebGPU no disponible</h2>
+      <p>Maia necesita WebGPU para correr el modelo en tu dispositivo.</p>
+      <ul>
+        <li><b>iPhone:</b> iOS 18 o superior, Safari. Si aún no funciona, abre <code>Ajustes → Apps → Safari → Avanzado → Funciones experimentales</code> y activa <b>WebGPU</b>.</li>
+        <li><b>Android:</b> Chrome 121+ con WebGPU.</li>
+        <li><b>Escritorio:</b> Chrome, Edge o Safari Tech Preview.</li>
+      </ul>
+      <button id="continueAnywayBtn">Continuar de todas formas</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
