@@ -34,13 +34,15 @@ Abre la URL en **Chrome 121+**, **Edge 121+**, o **Safari Tech Preview**. Todo i
 
 | Modelo | Tamaño | Notas |
 |---|---|---|
-| Llama 3.2 1B Instruct | ~880 MB | Recomendado para iPhone |
+| Llama 3.2 1B Instruct | ~880 MB | Cualquier iPhone con iOS 18+ |
 | Qwen 2.5 1.5B Instruct | ~950 MB | Bueno en español |
 | Gemma 2 2B IT | ~1.4 GB | Más capaz |
-| Llama 3.2 3B Instruct | ~2.0 GB | iPhone 15 Pro+ |
+| Llama 3.2 3B Instruct | ~2.0 GB | iPhone 14 Pro+ |
 | Phi 3.5 mini | ~2.2 GB | Bueno en código |
-| Qwen 2.5 3B Instruct | ~2.0 GB | Multilingüe fuerte |
+| **Qwen 2.5 3B Instruct** | **~2.0 GB** | **★ Recomendado: lo más potente estable en iPhone** |
 | Hermes 3 Llama 3.2 3B | ~2.0 GB | Fine-tune comunitario |
+| Qwen 2.5 7B Instruct | ~4.5 GB | iPhone 15 Pro+/escritorio |
+| Llama 3.1 8B Instruct | ~5.0 GB | Solo escritorio o iPad Pro |
 
 Todos son modelos open-source. Lo que el modelo responda depende del modelo, no de Maia: la app no añade ningún filtro propio sobre la respuesta.
 

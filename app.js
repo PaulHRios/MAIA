@@ -5,48 +5,61 @@ import * as webllm from "https://esm.run/@mlc-ai/web-llm@0.2.79";
 
 // Modelos curados. IDs corresponden a los publicados por mlc-ai en HuggingFace
 // y soportados por WebLLM. Se ordenan de menor a mayor uso de memoria.
+const RECOMMENDED_MODEL = "Qwen2.5-3B-Instruct-q4f16_1-MLC";
 const MODELS = [
   {
     id: "Llama-3.2-1B-Instruct-q4f16_1-MLC",
     label: "Llama 3.2 1B (rápido, ~880 MB)",
     sizeMb: 880,
-    note: "Mejor opción para iPhone. Equilibrio entre velocidad y calidad.",
+    note: "El más liviano. Funciona en cualquier iPhone con iOS 18+.",
   },
   {
     id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
     label: "Qwen 2.5 1.5B (~950 MB)",
     sizeMb: 950,
-    note: "Bueno en español y razonamiento.",
+    note: "Bueno en español, equilibrado.",
   },
   {
     id: "gemma-2-2b-it-q4f16_1-MLC",
     label: "Gemma 2 2B (~1.4 GB)",
     sizeMb: 1400,
-    note: "Más capaz pero pesado para móviles antiguos.",
+    note: "Más capaz, sigue siendo razonable para iPhone.",
   },
   {
     id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
     label: "Llama 3.2 3B (~2.0 GB)",
     sizeMb: 2000,
-    note: "Mucha calidad. iPhone 15 Pro o superior recomendado.",
+    note: "Mucha calidad. iPhone 14 Pro o superior.",
   },
   {
     id: "Phi-3.5-mini-instruct-q4f16_1-MLC",
     label: "Phi 3.5 mini (~2.2 GB)",
     sizeMb: 2200,
-    note: "Bueno en código y razonamiento técnico.",
+    note: "Fuerte en código y razonamiento técnico.",
   },
   {
     id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",
-    label: "Qwen 2.5 3B (~2.0 GB)",
+    label: "★ Qwen 2.5 3B (recomendado, ~2.0 GB)",
     sizeMb: 2000,
-    note: "Multilingüe fuerte.",
+    note: "Lo más potente que corre estable en iPhone. Excelente en español.",
   },
   {
     id: "Hermes-3-Llama-3.2-3B-q4f16_1-MLC",
     label: "Hermes 3 Llama 3.2 3B (~2.0 GB)",
     sizeMb: 2000,
     note: "Fine-tune comunitario, respuestas más directas.",
+  },
+  {
+    id: "Qwen2.5-7B-Instruct-q4f16_1-MLC",
+    label: "Qwen 2.5 7B (potente, ~4.5 GB)",
+    sizeMb: 4500,
+    note: "El más capaz disponible. iPhone 15 Pro/16 con buena RAM, o escritorio. Puede fallar en móviles con <8 GB.",
+  },
+  {
+    id: "Llama-3.1-8B-Instruct-q4f16_1-MLC",
+    label: "Llama 3.1 8B (potente, ~5 GB)",
+    sizeMb: 5000,
+    note: "Solo escritorio o iPad Pro / iPhone 16 Pro Max. Probablemente no cargue en iPhones más antiguos.",
   },
 ];
 
@@ -143,6 +156,8 @@ function loadSettings() {
   const savedModel = localStorage.getItem(STORAGE.model);
   if (savedModel && MODELS.some((m) => m.id === savedModel)) {
     els.modelSelect.value = savedModel;
+  } else {
+    els.modelSelect.value = RECOMMENDED_MODEL;
   }
   updateModelSize();
 
