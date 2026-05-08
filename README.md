@@ -43,6 +43,13 @@ Abre la URL en **Chrome 121+**, **Edge 121+**, o **Safari Tech Preview**. Todo i
 | Hermes 3 Llama 3.2 3B | ~2.0 GB | Fine-tune comunitario |
 | Qwen 2.5 7B Instruct | ~4.5 GB | iPhone 15 Pro+/escritorio |
 | Llama 3.1 8B Instruct | ~5.0 GB | Solo escritorio o iPad Pro |
+| 👁 Phi 3.5 Vision | ~5.6 GB | Único con visión (fotos de plantas, hongos, texto). Solo cargará en escritorio o iPad Pro; iPhone Safari probablemente se quede sin memoria. |
+
+## 📷 Imágenes (visión)
+
+Cargando el modelo **Phi 3.5 Vision** y tocando 📷 puedes adjuntar una foto (de tu galería o tomarla con la cámara) y preguntar sobre ella. Útil para identificar plantas, hongos, leer texto, describir escenas, etc.
+
+> ⚠️ **Aviso de seguridad**: la identificación con foto **NUNCA** es suficiente para decidir si algo silvestre es comestible. Setas y plantas tienen sosias venenosos. Maia siempre recomienda verificación experta — síguelo.
 
 Todos son modelos open-source. Lo que el modelo responda depende del modelo, no de Maia: la app no añade ningún filtro propio sobre la respuesta.
 
