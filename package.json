@@ -1,0 +1,6 @@
+{
+  "name": "maia-field", "version": "2.0.0-beta.1", "private": true, "type": "module",
+  "scripts": {"build":"node scripts/build.mjs", "test":"node --test tests/core.test.mjs", "test:browser":"node tests/browser.mjs"},
+  "dependencies": {"@mlc-ai/web-llm":"0.2.85", "@huggingface/transformers":"3.8.1", "pdfjs-dist":"5.4.296"},
+  "devDependencies": {"esbuild":"0.25.11", "playwright":"1.55.1"}
+}

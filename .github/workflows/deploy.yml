@@ -1,8 +1,8 @@
-name: Deploy to GitHub Pages
+name: MAIA - test, build and deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, maia-field-v2-20261025]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: maia-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -19,14 +19,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned direct dependencies
+        run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Bundle local runtime and assets
+        run: npm run build
+      - name: Install test browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Offline browser tests (not model-quality tests)
+        run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maia-test-evidence
+          path: |
+            test-results/
+            package-lock.json
       - uses: actions/configure-pages@v5
+        if: github.ref == 'refs/heads/main'
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
-          path: .
+          path: dist
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

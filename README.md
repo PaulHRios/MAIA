@@ -1,98 +1,56 @@
-# Maia · Chat IA Offline
+# MAIA Campo · 2.0 beta
 
-Maia es una **Progressive Web App (PWA)** que ejecuta un modelo de lenguaje **dentro de tu propio dispositivo** usando WebGPU + WebAssembly (vía [WebLLM](https://github.com/mlc-ai/web-llm)).
+PWA personal en español para instalar desde Safari mediante Compartir → Añadir a pantalla de inicio. No requiere App Store, cuenta ni API key.
 
-- Sin servidor. Sin API key. Sin telemetría.
-- El modelo se descarga **una sola vez** (~700 MB – 2 GB según el modelo) y queda cacheado en el navegador.
-- Tras la primera carga, **funciona sin conexión a internet**.
-- Se puede "instalar" en la pantalla de inicio del iPhone como una app.
+**Prototipo experimental. No es un dispositivo médico, identificador fiable de especies ni sustituto de rescate. No está validado en un iPhone real.**
 
-## 🌐 Demo
+## Qué incluye
 
-Una vez activado GitHub Pages en este repo, la app vivirá en:
+- Chat local con WebLLM y selección Qwen3 1.7B / 4B / 8B. Los modelos mayores pueden exceder la memoria de iOS. El catálogo se comprueba contra el motor instalado, no contra nombres inventados.
+- Descripción visual experimental con SmolVLM 500M. No determina comestibilidad, seguridad ni diagnóstico. Una descripción errónea puede contaminar la respuesta posterior; siempre aparece separada y marcada como no verificada.
+- Dictado de hasta 20 segundos con Whisper Tiny multilingüe, local vía WASM. El texto se revisa antes de enviarlo. Lectura con voces de iOS solo si se identifican como locales y en español.
+- Un solo tipo de modelo en memoria: se libera el anterior antes de cargar chat, imagen o dictado. Cambiar de función puede ser lento.
+- Biblioteca IndexedDB: PDF con texto, TXT, MD; búsqueda por palabras con ranking BM25, página y fragmento. Los documentos Tacoma/Lexus se separan por etiqueta. No se incluyen manuales de fábrica ni una base de hongos validada. PDFs escaneados y diagramas no se interpretan.
+- Seis fichas breves que no necesitan modelo: emergencias, hemorragia, frío, calor, hongos y desorientación. Las fuentes y la fecha de consulta aparecen en cada ficha. Son síntesis editoriales no revisadas clínicamente, no un curso ni manual exhaustivo.
+- Modo primeros auxilios sin generación médica; consultas de riesgo detectadas pasan a fichas. El filtro de texto no es un sistema de triaje completo.
+- Coordenadas por permiso explícito del usuario, sin enviar ubicación. No hay mapas, navegación ni envío de SOS.
+- Copia exportable de textos, notas y conversación. Al reimportar JSON solo se añaden documentos; no se restauran ni sobrescriben automáticamente ajustes o conversaciones. No incluye PDF originales ni pesos.
 
-```
-https://<tu-usuario>.github.io/MAIA/
-```
+## Instalar y probar
 
-## 📱 Instalación en iPhone
+1. Abrir la URL publicada en Safari y añadir a pantalla de inicio. Usar siempre ese icono y no navegación privada.
+2. En Preparar, descargar conversación, visión y dictado con Wi-Fi. El chat puede ocupar varios GB; las librerías, runtimes, voz y visión añaden espacio. Mantener la app visible durante la preparación.
+3. Completar los vehículos con año, variante, motor y transmisión; importar los manuales correctos y asignarlos al vehículo correspondiente. Los perfiles y documentos quedan solo en el navegador.
+4. Revisar archivos/espacio. Solicitar persistencia; el navegador puede denegarla y puede borrar datos incluso posteriormente.
+5. Activar modo avión con Wi-Fi apagado, cerrar la app y abrir su icono. Probar conversación sin red. Después hacer una pregunta con foto, un dictado y una lectura. Las marcas de prueba solo registran que la operación terminó con `navigator.onLine === false`, no que la información sea correcta.
+6. Conservar manuales y guías originales también en Archivos, y medios de navegación, primeros auxilios y comunicaciones independientes.
 
-1. **Requisitos**: iPhone con **iOS 18 o superior**. WebGPU sólo está disponible en iOS reciente.
-2. Abre la URL de la app en **Safari**.
-3. Si aparece "WebGPU no disponible", ve a **Ajustes → Apps → Safari → Avanzado → Funciones experimentales** y activa **WebGPU**. Vuelve a Safari y recarga.
-4. En Safari, toca el botón **Compartir** (cuadro con flecha) → **Añadir a pantalla de inicio**.
-5. Abre **Maia** desde la pantalla de inicio. Pulsa el menú ☰ → elige un modelo → **Descargar/cargar modelo**.
-6. Cuando la barra llegue al 100 %, ya puedes **activar el modo avión**: Maia seguirá respondiendo.
+## Ingeniería offline
 
-> Consejo: el primer modelo recomendado para iPhone es **Llama 3.2 1B** (~880 MB). Para iPhone 15 Pro o superior puedes usar 3B sin problema.
+El build empaqueta JavaScript y copia los runtimes a la misma web. No hay importaciones CDN en el arranque. El service worker instala atómicamente el shell y chunks JavaScript; WASM de voz/visión se prepara y verifica por separado. Los modelos usan las cachés de sus motores. No se muestra un estado global «seguro para el bosque». Un fallo de descarga no se silencia ni se reemplaza con una API en la nube.
 
-## 💻 Uso en escritorio
+Una nueva versión espera confirmación antes de activarse. La caché propia de MAIA puede renovarse; no se borran cachés de otros proyectos alojados en el mismo origen. Los archivos antiguos de la primera MAIA quedan en Git y sus datos en localStorage no se eliminan; esta beta usa una base nueva y no migra automáticamente conversaciones antiguas.
 
-Abre la URL en **Chrome 121+**, **Edge 121+**, o **Safari Tech Preview**. Todo igual: elige modelo, descarga, chatea. Funciona sin internet después.
+Los documentos y resultados se insertan como texto, no HTML. Los PDF se procesan con evaluación de JavaScript deshabilitada. Las notas/documentos se marcan como datos, no instrucciones, en el prompt; esto mitiga pero no elimina prompt injection ni alucinaciones. Las referencias recuperadas no verifican afirmaciones del modelo. Los valores mecánicos deben comprobarse en el original.
 
-## 🧠 Modelos incluidos
+El contexto está limitado a 4096 tokens. Se envían turnos completos recientes y notas explícitas cortas, no una memoria ilimitada. Qwen3 4B es un candidato a evaluar, no una mejora de inteligencia demostrada frente a la app anterior.
 
-| Modelo | Tamaño | Notas |
-|---|---|---|
-| Llama 3.2 1B Instruct | ~880 MB | Cualquier iPhone con iOS 18+ |
-| Qwen 2.5 1.5B Instruct | ~950 MB | Bueno en español |
-| Gemma 2 2B IT | ~1.4 GB | Más capaz |
-| Llama 3.2 3B Instruct | ~2.0 GB | iPhone 14 Pro+ |
-| Phi 3.5 mini | ~2.2 GB | Bueno en código |
-| **Qwen 2.5 3B Instruct** | **~2.0 GB** | **★ Recomendado: lo más potente estable en iPhone** |
-| Hermes 3 Llama 3.2 3B | ~2.0 GB | Fine-tune comunitario |
-| Qwen 2.5 7B Instruct | ~4.5 GB | iPhone 15 Pro+/escritorio |
-| Llama 3.1 8B Instruct | ~5.0 GB | Solo escritorio o iPad Pro |
-| 👁 Phi 3.5 Vision | ~5.6 GB | Único con visión (fotos de plantas, hongos, texto). Solo cargará en escritorio o iPad Pro; iPhone Safari probablemente se quede sin memoria. |
+## Desarrollo
 
-## 📷 Imágenes (visión)
+Node 22. `npm install`, `npm test`, `npm run build`. Servir `dist/` mediante HTTPS (localhost también sirve para pruebas). `npx playwright install chromium webkit` y `npm run test:browser` ejecutan pruebas de interfaz, caché y persistencia. Estas pruebas NO descargan modelos, NO prueban inferencia real, NO validan medicina ni identificación.
 
-Cargando el modelo **Phi 3.5 Vision** y tocando 📷 puedes adjuntar una foto (de tu galería o tomarla con la cámara) y preguntar sobre ella. Útil para identificar plantas, hongos, leer texto, describir escenas, etc.
+GitHub Actions construye y prueba antes de publicar `dist/` en Pages. Las dependencias directas están fijadas; el lock resuelto de cada ejecución se conserva como artefacto de CI. Este primer corte no incluye un lock transitivo versionado, por lo que la reproducibilidad de dependencias transitivas queda pendiente.
 
-> ⚠️ **Aviso de seguridad**: la identificación con foto **NUNCA** es suficiente para decidir si algo silvestre es comestible. Setas y plantas tienen sosias venenosos. Maia siempre recomienda verificación experta — síguelo.
+## Fuentes
 
-Todos son modelos open-source. Lo que el modelo responda depende del modelo, no de Maia: la app no añade ningún filtro propio sobre la respuesta.
+- https://www.redcross.org/take-a-class/resources/learn-first-aid/bleeding-life-threatening-external
+- https://www.redcross.org/take-a-class/resources/learn-first-aid/hypothermia
+- https://www.redcross.org/take-a-class/resources/learn-first-aid/heat-stroke
+- https://www.poison.org/articles/wild-mushroom-warning
+- https://www.poison.org/
+- https://www.nps.gov/articles/gtgemergencyplan.htm
+- https://webllm.mlc.ai/docs/
+- https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct
+- https://huggingface.co/onnx-community/whisper-tiny
 
-## 🛠 Desarrollo local
-
-No hay paso de build. Es HTML + CSS + JS estático.
-
-```bash
-# Servidor local rápido (se necesita https para SW + algunos navegadores requieren https para WebGPU)
-python3 -m http.server 8000
-# luego abre http://localhost:8000
-```
-
-Para probar la PWA en condiciones reales (service worker + WebGPU en iOS) necesitas **HTTPS**, así que lo más práctico es desplegar a GitHub Pages.
-
-## 🚀 Despliegue en GitHub Pages
-
-Este repo incluye un workflow en `.github/workflows/deploy.yml` que publica el contenido tal cual a GitHub Pages cuando haces push a `main`.
-
-Para activarlo:
-
-1. Sube esta rama a `main` (o haz merge desde `claude/offline-ai-chat-app-3oBqg`).
-2. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Haz cualquier push a `main`. El workflow se ejecutará y publicará en `https://<tu-usuario>.github.io/MAIA/`.
-
-## 🗂 Estructura
-
-```
-MAIA/
-├── index.html              # UI
-├── style.css               # Estilos (mobile-first, dark)
-├── app.js                  # Lógica de chat + WebLLM
-├── manifest.webmanifest    # Manifest PWA
-├── sw.js                   # Service Worker (cachea el shell)
-├── icons/                  # Iconos PWA
-└── .github/workflows/
-    └── deploy.yml          # Auto-deploy a Pages
-```
-
-## ⚖️ Privacidad
-
-Todo ocurre en tu dispositivo. Las conversaciones se guardan en `localStorage` del navegador y nunca salen de él. No hay analytics ni llamadas a servidores externos durante el chat (solo durante la **primera** descarga del modelo desde HuggingFace).
-
-## 📄 Licencia
-
-MIT para el código de la app. Cada modelo descargado tiene su propia licencia (Llama, Gemma, Qwen, Phi, etc.) — revisa la del modelo que uses.
+Consultadas el 25 de octubre de 2026. La aplicación no está avalada por esas organizaciones. Cada modelo y dependencia conserva su licencia; código de la aplicación bajo MIT como en el proyecto original.
